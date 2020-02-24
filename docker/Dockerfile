@@ -10,12 +10,12 @@ RUN apt-get update && \
     liblzma-dev \
     libxml2-dev \
     libgfortran3 \
+    libopenblas-dev \
     libcairo2-dev \
     zip \
     python3-dev \
     python3-pip \
     pandoc \
-    r-base \
     git
 
 # Install all software under /opt/software:
@@ -27,9 +27,13 @@ RUN wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -
 ENV PATH="/opt/software/miniconda/bin:${PATH}"
 
 # install kallisto and sleuth via conda
+RUN conda create --name r36 r=3.6.0
+SHELL ["conda", "run", "-n", "r36", "/bin/bash", "-c"]
 RUN conda config --add channels defaults && \
   conda config --add channels bioconda && \
   conda config --add channels conda-forge && \
+  conda install -y bioconductor-deseq2 && \
+  conda install -y bioconductor-tximport && \
   conda install -y kallisto && \
   conda install -y r-sleuth
 
@@ -85,8 +89,9 @@ ADD move_files.py /opt/software/
 ADD create_sleuth_annotation_file.py /opt/software/
 ADD pivot_normalized_counts.py /opt/software/
 
-# the actual script to run sleuth:
+# the actual script to run sleuth and tximport:
 ADD sleuth.R /opt/software
+ADD run_tximport.R /opt/software
 
 # Add the report template and styling:
 RUN mkdir /opt/report

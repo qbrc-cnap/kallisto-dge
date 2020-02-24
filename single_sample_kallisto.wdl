@@ -61,7 +61,7 @@ task KallistoQuantification {
 
     runtime {
         zones: "us-east4-c"
-        docker: "docker.io/blawney/kallisto:v0.0.1"
+        docker: "docker.io/blawney/kallisto:v0.0.2"
         cpu: 4
         memory: "5 G"
         disks: "local-disk " + disk_size + " HDD"

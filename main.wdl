@@ -108,6 +108,8 @@ workflow KallistoAndSleuthWorkflow{
             analysis_report = make_report.report,
             sleuth_outputs = sleuth_dge.sleuth_results,
             normalized_counts_files = sleuth_dge.norm_counts,
+            gene_level_count_files = sleuth_dge.gene_level_counts,
+            deseq_results = sleuth_dge.deseq_results,
             figures = sleuth_dge.sleuth_plots
     }
 
@@ -157,7 +159,7 @@ task zip_results {
     }
 
     runtime {
-        docker: "docker.io/blawney/kallisto:v0.0.1"
+        docker: "docker.io/blawney/kallisto:v0.0.2"
         cpu: 2
         memory: "6 G"
         disks: "local-disk " + disk_size + " HDD"
