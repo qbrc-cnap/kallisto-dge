@@ -109,7 +109,7 @@ workflow KallistoAndSleuthWorkflow{
             sleuth_outputs = sleuth_dge.sleuth_results,
             normalized_counts_files = sleuth_dge.norm_counts,
             gene_level_count_files = sleuth_dge.gene_level_count_file,
-            deseq_results = sleuth_dge.deseq_results,
+            deseq_results = sleuth_dge.deseq_results_file,
             figures = sleuth_dge.sleuth_plots
     }
 
