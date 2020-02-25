@@ -132,6 +132,8 @@ task zip_results {
     File analysis_report
     Array[File] sleuth_outputs
     Array[File] normalized_counts_files
+    Array[File] gene_level_count_files
+    Array[File] deseq_results
     Array[Array[File]] figures
 
     Array[File] contrast_figure_list = flatten(figures)
@@ -149,6 +151,8 @@ task zip_results {
         python3 /opt/software/organize_report.py -b report/differential_expression ${sep=" " sleuth_outputs}
         python3 /opt/software/organize_report.py -b report/differential_expression ${sep=" " normalized_counts_files}
         python3 /opt/software/organize_report.py -b report/differential_expression ${sep=" " contrast_figure_list}
+        python3 /opt/software/organize_report.py -b report/differential_expression ${sep=" " deseq_results}
+        python3 /opt/software/organize_report.py -b report/differential_expression ${sep=" " gene_level_count_files}
 
         mv ${analysis_report} report/
         zip -r "${zip_name}.zip" report
