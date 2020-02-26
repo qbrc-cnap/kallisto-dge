@@ -40,6 +40,8 @@ task KallistoQuantification {
     String stdout_log = "stdout.log"
 
     command {
+        source activate r36
+
         kallisto quant -i ${kallisto_index_path} \
             -o "kallisto_results_${sample_name}" \
             -b ${kallisto_bootstraps} \
