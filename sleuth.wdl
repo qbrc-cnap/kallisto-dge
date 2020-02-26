@@ -73,8 +73,8 @@ task sleuth_dge {
     output {
         File norm_counts = "${sleuth_normalized_counts}"
         File sleuth_results = "${sleuth_output}"
-        File gene_level_counts = "${gene_level_counts}"
-        File deseq_results = "${deseq_results}"
+        File gene_level_count_file = "${gene_level_counts}"
+        File deseq_results_file = "${deseq_results}"
         Array[File] sleuth_plots = glob("${output_figures_dir}/*.png")
     }
 
