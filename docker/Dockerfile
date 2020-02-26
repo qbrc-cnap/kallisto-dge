@@ -15,6 +15,7 @@ RUN apt-get update && \
     zip \
     python3-dev \
     python3-pip \
+    default-jre \
     pandoc \
     git
 
