@@ -35,7 +35,9 @@ RUN conda config --add channels defaults && \
   conda install -y bioconductor-deseq2 && \
   conda install -y bioconductor-tximport && \
   conda install -y kallisto && \
-  conda install -y r-sleuth
+  conda install -y r-sleuth && \
+  conda install -y -c r r-ggplot2 && \
+  conda install -y -c r r-gridextra
 
 # Install fastQC:
 RUN cd /opt/software && \
@@ -54,9 +56,6 @@ RUN cd /opt/software && \
   cd fastQValidator && \
   make && \
   make install
-
-# Install packages for sleuth's plotting:
-RUN R -e "install.packages('ggplot2', repos = 'http://cran.us.r-project.org'); install.packages('gridExtra', repos = 'http://cran.us.r-project.org');"
 
 # Install some Python3 libraries:
 ADD requirements.txt /opt/software/
