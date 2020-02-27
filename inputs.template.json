@@ -9,6 +9,7 @@
   "KallistoAndSleuthWorkflow.base_conditions": "Array[String]",
   "KallistoAndSleuthWorkflow.experimental_conditions": "Array[String]",
   "KallistoAndSleuthWorkflow.genome": "String",
-  "KallistoAndSleuthWorkflow.transcript_to_gene_mapping": "File"
+  "KallistoAndSleuthWorkflow.transcript_to_gene_mapping": "File",
+  "KallistoAndSleuthWorkflow.is_pdx": "Boolean"
 }
 

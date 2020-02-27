@@ -88,6 +88,7 @@ ADD organize_report.py /opt/software
 ADD move_files.py /opt/software/
 ADD create_sleuth_annotation_file.py /opt/software/
 ADD pivot_normalized_counts.py /opt/software/
+ADD split_pdx_genes.py /opt/software/
 
 # the actual script to run sleuth and tximport:
 ADD sleuth.R /opt/software

@@ -21,6 +21,7 @@ workflow KallistoAndSleuthWorkflow{
     String output_zip_name
     String git_repo_url
     String git_commit_hash
+    Boolean is_pdx
 
     String versus_sep = "_versus_"
     String normalized_counts_suffix = "tpm.tsv"
@@ -71,7 +72,8 @@ workflow KallistoAndSleuthWorkflow{
                 pca_suffix = pca_suffix,
                 top_heatmap_suffix = top_heatmap_suffix,
                 qval_threshold = qval_threshold,
-                max_transcripts = max_transcripts
+                max_transcripts = max_transcripts,
+                is_pdx = is_pdx
         }
     }
 
@@ -110,7 +112,12 @@ workflow KallistoAndSleuthWorkflow{
             normalized_counts_files = sleuth_dge.norm_counts,
             gene_level_count_files = sleuth_dge.gene_level_count_file,
             deseq_results = sleuth_dge.deseq_results_file,
-            figures = sleuth_dge.sleuth_plots
+            figures = sleuth_dge.sleuth_plots,
+            is_pdx = is_pdx,
+            human_counts = sleuth_dge.human_counts,
+            human_deseq = sleuth_dge.human_deseq,
+            mouse_counts = sleuth_dge.mouse_counts,
+            mouse_deseq = sleuth_dge.mouse_deseq
     }
 
     output {
@@ -135,6 +142,11 @@ task zip_results {
     Array[File] gene_level_count_files
     Array[File] deseq_results
     Array[Array[File]] figures
+    Boolean is_pdx
+    Array[File] human_counts
+    Array[File] human_deseq 
+    Array[File] mouse_counts
+    Array[File] mouse_deseq
 
     Array[File] contrast_figure_list = flatten(figures)
 
@@ -148,11 +160,19 @@ task zip_results {
 
         mv ${multiqc_report} report/qc/
 
-        python3 /opt/software/organize_report.py -b report/differential_expression ${sep=" " sleuth_outputs}
-        python3 /opt/software/organize_report.py -b report/differential_expression ${sep=" " normalized_counts_files}
-        python3 /opt/software/organize_report.py -b report/differential_expression ${sep=" " contrast_figure_list}
-        python3 /opt/software/organize_report.py -b report/differential_expression ${sep=" " deseq_results}
-        python3 /opt/software/organize_report.py -b report/differential_expression ${sep=" " gene_level_count_files}
+        /usr/bin/python3 /opt/software/organize_report.py -b report/differential_expression ${sep=" " sleuth_outputs}
+        /usr/bin/python3 /opt/software/organize_report.py -b report/differential_expression ${sep=" " normalized_counts_files}
+        /usr/bin/python3 /opt/software/organize_report.py -b report/differential_expression ${sep=" " contrast_figure_list}
+        /usr/bin/python3 /opt/software/organize_report.py -b report/differential_expression ${sep=" " deseq_results}
+        /usr/bin/python3 /opt/software/organize_report.py -b report/differential_expression ${sep=" " gene_level_count_files}
+
+        if [ "${is_pdx}" = "true" ]
+        then
+            /usr/bin/python3 /opt/software/organize_report.py -b report/differential_expression ${sep=" " human_counts}
+            /usr/bin/python3 /opt/software/organize_report.py -b report/differential_expression ${sep=" " mouse_counts}
+            /usr/bin/python3 /opt/software/organize_report.py -b report/differential_expression ${sep=" " human_deseq}
+            /usr/bin/python3 /opt/software/organize_report.py -b report/differential_expression ${sep=" " mouse_deseq}
+        fi
 
         mv ${analysis_report} report/
         zip -r "${zip_name}.zip" report

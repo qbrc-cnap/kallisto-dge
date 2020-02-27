@@ -49,10 +49,23 @@
 					{
 						"value": "Ensembl Mus musculus GRCm38.95",
 						"display": "Ensembl Mus musculus GRCm38.95"
+					},
+					{
+						"value":"PDx Hybrid: Ensembl Mus musculus GRCm38.95 + Homo sapiens GRCh38.95"
+						"display":"PDx Hybrid: Ensembl Mus musculus GRCm38.95 + Homo sapiens GRCh38.95"
 					}
 				]
 			}
 		},
+		{
+			"display_element": {
+				"type": "boolean_checkbox",
+				"label": "Is patient-derived xenograft",
+				"description": "Please check if the sample is a patient-derived xenograft mouse model."
+			},
+			"target": "KallistoAndSleuthWorkflow.is_pdx"
+		},
+
 		{
 			"target": {
 				"target_ids": [
