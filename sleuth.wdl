@@ -12,7 +12,10 @@ task sleuth_dge {
     Float qval_threshold
     Int max_transcripts
     Boolean is_pdx
-
+    Array[File] human_tsv_files # only relevant for PDx
+    Array[File] mouse_tsv_files # only relevant for PDx
+    String human_tag
+    String mouse_tag
 
     Int disk_size = 100
         
@@ -28,12 +31,7 @@ task sleuth_dge {
     String gene_level_counts = contrast_name + gene_level_counts_suffix
     String deseq_results_suffix = ".gene_level_dge_results.tsv"
     String deseq_results = contrast_name + deseq_results_suffix
-
-    # if we are running PDx, we will also generate files for human and mouse separately.
-    # these will be named similarly, e.g. 'A_vs_B.mouse.tpm.tsv' and 'A_vs_B.human.tpm.tsv'
-    # and so on.
-    String human_tag = "human"
-    String mouse_tag = "mouse"
+    String human_enst_prefix = 'ENST'
 
     command {
         echo "Moving abundance.h5 files..."
@@ -46,65 +44,76 @@ task sleuth_dge {
 
         # activate the conda environment.  Otherwise R will not be visible.
         source activate r36
-        
-        Rscript /opt/software/sleuth.R \
-            ${sleuth_annotations} \
-            ${transcript_to_gene_mapping} \
-            ${sleuth_output} \
-            ${normalized_counts} \
-            ${output_figures_dir} \
-            ${max_transcripts} \
-            ${qval_threshold} \
-            ${base_group} \
-            ${experimental_group} \
-            ${pca_output} \
-            ${heatmap_output} \
-            ${contrast_name}
-
-        echo "Completed sleuth"
-
-        /usr/bin/python3 /opt/software/pivot_normalized_counts.py \
-            -i ${normalized_counts} \
-            -o ${sleuth_normalized_counts}
-
-        echo "Run tximport..."
-        Rscript /opt/software/run_tximport.R \
-            ${sleuth_annotations} \
-            ${transcript_to_gene_mapping} \
-            ${base_group} \
-            ${experimental_group} \
-            ${deseq_results} \
-            ${gene_level_counts}
-
-        echo "Done with tximport and DESeq2"
-
+                
         if [ "${is_pdx}" = "true" ]
         then
-            export HUMAN_SLEUTH_RESULTS = "${contrast_name}.${human_tag}.${sleuth_output_suffix}"
-            export MOUSE_SLEUTH_RESULTS = "${contrast_name}.${mouse_tag}.${sleuth_output_suffix}"
-            export HUMAN_SLEUTH_TPM = "${contrast_name}.${human_tag}.${normalized_counts_suffix}"
-            export MOUSE_SLEUTH_TPM = "${contrast_name}.${mouse_tag}.${normalized_counts_suffix}"
 
-            # send the header lines to the output files:
-            head -1 ${sleuth_output} > $HUMAN_SLEUTH_RESULTS
-            head -1 ${sleuth_output} > $MOUSE_SLEUTH_RESULTS
-            head -1 ${sleuth_normalized_counts} > $HUMAN_SLEUTH_TPM
-            head -1 ${sleuth_normalized_counts} > $MOUSE_SLEUTH_TPM
+            # moves the *filtered* TSV files into the sample dirs, to co-locate with the h5 abundance files
+            /usr/bin/python3 /opt/software/move_files.py ${sep=" " human_tsv_files}
 
-            # split human and mouse based on the ENST transcript
-            grep -P "^ENST" ${sleuth_output} >> $HUMAN_SLEUTH_RESULTS
-            grep -vP "^ENST" ${sleuth_output} >> $MOUSE_SLEUTH_RESULTS 
-            grep -P "^ENST" ${sleuth_normalized_counts} >> $HUMAN_SLEUTH_TPM
-            grep -vP "^ENST" ${sleuth_normalized_counts} >> $MOUSE_SLEUTH_TPM
+            Rscript /opt/software/sleuth.R \
+                ${sleuth_annotations} \
+                ${transcript_to_gene_mapping} \
+                ${sleuth_output} \
+                ${normalized_counts} \
+                ${output_figures_dir} \
+                ${max_transcripts} \
+                ${qval_threshold} \
+                ${base_group} \
+                ${experimental_group} \
+                ${pca_output} \
+                ${heatmap_output} \
+                ${contrast_name} \
+                ${human_enst_prefix}
 
-            # run a python script to split at the gene-name level, since we can't easily grep:
-            # Creates files like "A_vs_B.human.gene_level_counts.tsv"
-            /usr/bin/python3 /opt/software/split_pdx_genes.py \
-                -d ${deseq_results} \
-                -c ${gene_level_counts} \
-                -t ${transcript_to_gene_mapping} \
-                -ht ${human_tag} \
-                -mt ${mouse_tag}
+            echo "Completed sleuth on human transcripts for PDx"
+
+            /usr/bin/python3 /opt/software/pivot_normalized_counts.py \
+                -i ${normalized_counts} \
+                -o ${sleuth_normalized_counts}
+
+            echo "Run tximport on human transcripts..."
+            Rscript /opt/software/run_tximport.R \
+                ${sleuth_annotations} \
+                ${transcript_to_gene_mapping} \
+                ${base_group} \
+                ${experimental_group} \
+                ${deseq_results} \
+                ${gene_level_counts} \
+                ${human_enst_prefix}
+
+            echo "Done with tximport and DESeq2"
+        else
+            Rscript /opt/software/sleuth.R \
+                ${sleuth_annotations} \
+                ${transcript_to_gene_mapping} \
+                ${sleuth_output} \
+                ${normalized_counts} \
+                ${output_figures_dir} \
+                ${max_transcripts} \
+                ${qval_threshold} \
+                ${base_group} \
+                ${experimental_group} \
+                ${pca_output} \
+                ${heatmap_output} \
+                ${contrast_name}
+
+            echo "Completed sleuth"
+
+            /usr/bin/python3 /opt/software/pivot_normalized_counts.py \
+                -i ${normalized_counts} \
+                -o ${sleuth_normalized_counts}
+
+            echo "Run tximport..."
+            Rscript /opt/software/run_tximport.R \
+                ${sleuth_annotations} \
+                ${transcript_to_gene_mapping} \
+                ${base_group} \
+                ${experimental_group} \
+                ${deseq_results} \
+                ${gene_level_counts}
+
+            echo "Done with tximport and DESeq2"
         fi
     }
 

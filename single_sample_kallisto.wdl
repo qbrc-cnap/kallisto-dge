@@ -59,13 +59,14 @@ task KallistoQuantification {
         File abundance_h5 = "${sample_name}.abundance.h5"
         File abundance_tsv = "${sample_name}.abundance.tsv"
         File run_info = "${sample_name}.run_info.json"
+        String sample_name = "${sample_name}"
     }
 
     runtime {
         zones: "us-east4-c"
         docker: "docker.io/blawney/kallisto:v0.0.2"
         cpu: 4
-        memory: "5 G"
+        memory: "20 G"
         disks: "local-disk " + disk_size + " HDD"
         preemptible: 0
     }

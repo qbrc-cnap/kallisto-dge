@@ -5,18 +5,29 @@ library(tximport)
 # out to various directories as required for sleuth 
 
 args <- commandArgs(TRUE)
+argsLen = length(args)
 ANNOTATIONS <- args[1] # annotation file
 TRANSCRIPT_TO_GENE_MAPPING_FILE <- args[2] # file mapping the transcript to gene names. Needs column headers of `enst` and `name`
 GROUP_A <- args[3] # the 'base' condition
 GROUP_B <- args[4] # the 'experimental' condition
 OUTPUT_DESEQ_FILE <- args[5]
 OUTPUT_NORMALIZED_COUNTS_FILE <- args[6]
+PDX = FALSE
+if (argsLen > 6) {
+	PDX = TRUE
+	HUMAN_TRANSCRIPT_PREFIX = args[7]
+}
 
 # read the annotations and set the row names to be the sample names"
 ann_df = read.table(ANNOTATIONS, sep='\t', header=T, row.names='sample')
 
 # ingest the transcript abundances and map to genes using tximport:
-files<-file.path(ann_df$path, 'abundance.h5')
+if (PDX){
+    fname = paste('abundance', HUMAN_TRANSCRIPT_PREFIX, 'tsv', sep='.')
+    files<-file.path(ann_df$path, fname)
+} else {
+    files<-file.path(ann_df$path, 'abundance.h5')
+}
 names(files) <- rownames(ann_df)
 
 # prepare the annotations for DESeq2.  First keep only the condition column

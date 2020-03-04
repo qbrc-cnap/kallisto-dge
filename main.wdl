@@ -29,6 +29,12 @@ workflow KallistoAndSleuthWorkflow{
     String pca_suffix = 'pca.png'
     String top_heatmap_suffix = 'heatmap.png'
 
+    # if we are running PDx, we will also generate files for human and mouse separately.
+    # these will be named similarly, e.g. 'A_vs_B.mouse.tpm.tsv' and 'A_vs_B.human.tpm.tsv'
+    # and so on.
+    String human_tag = "human"
+    String mouse_tag = "mouse"
+
     Float qval_threshold = 0.01
     Int max_transcripts = 30 # the maximum number of transcripts to plot
 
@@ -56,6 +62,15 @@ workflow KallistoAndSleuthWorkflow{
                 kallisto_index_path = kallisto_index_path,
                 kallisto_bootstraps = kallisto_bootstraps
         }
+
+        call filter_for_pdx {
+            input:
+                is_pdx = is_pdx,
+                abundance_tsv = single_sample_process.abundance_tsv,
+                sample_name = single_sample_process.sample_name,
+                human_tag = human_tag,
+                mouse_tag = mouse_tag
+        }
     }
 
     scatter(item in contrast_pairs){
@@ -73,7 +88,11 @@ workflow KallistoAndSleuthWorkflow{
                 top_heatmap_suffix = top_heatmap_suffix,
                 qval_threshold = qval_threshold,
                 max_transcripts = max_transcripts,
-                is_pdx = is_pdx
+                is_pdx = is_pdx,
+                human_tsv_files = filter_for_pdx.human_tsv,
+                mouse_tsv_files = filter_for_pdx.mouse_tsv,
+                human_tag = human_tag,
+                mouse_tag = mouse_tag
         }
     }
 
@@ -131,6 +150,36 @@ workflow KallistoAndSleuthWorkflow{
     }
 }
 
+task filter_for_pdx {
+
+    # Note that this assumes we have a human and mouse PDx situation
+    # If this is not the case, then any files created here are irrelevant,
+    # so the naming doesn't matter.
+
+    Boolean is_pdx
+    File abundance_tsv
+    String sample_name
+    String human_tag
+    String mouse_tag
+
+    command {
+        if [ "${is_pdx}" = "true" ]
+        then
+            head -1 ${abundance_tsv} > "${sample_name}.abundance.${human_tag}.tsv"
+            head -1 ${abundance_tsv} > "${sample_name}.abundance.${mouse_tag}.tsv"
+            grep -P "^ENST" ${abundance_tsv} >> "${sample_name}.abundance.${human_tag}.tsv"
+            grep -vP "^ENST" ${abundance_tsv} >> "${sample_name}.abundance.${mouse_tag}.tsv"
+        else
+            touch "${sample_name}.abundance.${human_tag}.tsv"
+            touch "${sample_name}.abundance.${mouse_tag}.tsv"
+        fi
+    }
+
+    output {
+        File human_tsv ="${sample_name}.abundance.${human_tag}.tsv"
+        File mouse_tsv ="${sample_name}.abundance.${mouse_tag}.tsv"
+    }
+}
 
 task zip_results {
 

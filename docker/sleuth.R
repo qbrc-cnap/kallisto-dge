@@ -2,6 +2,7 @@ library("sleuth")
 library("ggplot2")
 
 args <- commandArgs(TRUE)
+argsLen = length(args)
 DESIGN_FILE <- args[1] # path to a design matrix file- see below for format
 TRANSCRIPT_TO_GENE_MAPPING_FILE <- args[2] # file mapping the transcript to gene names.  Format below
 OUTPUT_FILE <- args[3] # filepath to write the sleuth differential results to
@@ -14,6 +15,11 @@ GROUP_B <- args[9] # the 'experimental' condition
 PCA_FILENAME <- args[10] # the name of the PCA plot
 HEATMAP_FILENAME <- args[11] # the name of the heatmap
 CONTRAST_NAME <- args[12] # the name of the contrast (e.g. "A_versus_B")
+PDX = FALSE
+if (argsLen > 12) {
+	PDX = TRUE
+	HUMAN_TRANSCRIPT_PREFIX = args[13]
+}
 
 # cast to appropriate types:
 QVAL_THRESHOLD <- as.double(QVAL_THRESHOLD)
@@ -32,7 +38,16 @@ s2c <- read.table(DESIGN_FILE, header=T, stringsAsFactors=F)
 transcript_to_gene_map <- read.table(TRANSCRIPT_TO_GENE_MAPPING_FILE, header=T, sep='\t')
 colnames(transcript_to_gene_map) <- c('ensemble_gene_id', 'target_id','gene_name')
 
-so <- sleuth_prep(s2c, target_mapping = transcript_to_gene_map, read_bootstrap_tpm = TRUE, extra_bootstrap_summary = TRUE)
+if (PDX) {
+	# take the first file
+	fname <- paste0(s2c$path[1], '/abundance.h5')
+	all_targets <- as.character(rhdf5::h5read(fname, "aux/ids"))
+	human_enst <-lapply(all_targets,function(x){if(startsWith(x, HUMAN_TRANSCRIPT_PREFIX)) return(TRUE) else return(FALSE)})
+	human_targets <- all_targets[human_enst == TRUE]
+	so <- sleuth_prep(s2c, target_mapping = transcript_to_gene_map, read_bootstrap_tpm = TRUE, extra_bootstrap_summary = TRUE, filter_target_id=human_targets)
+} else {
+	so <- sleuth_prep(s2c, target_mapping = transcript_to_gene_map, read_bootstrap_tpm = TRUE, extra_bootstrap_summary = TRUE)
+}
 so <- sleuth_fit(so, formula= ~ condition, fit_name='full')
 so <- sleuth_fit(so, formula = ~1, fit_name='reduced')
 so <- sleuth_lrt(so, 'reduced', 'full')
