@@ -179,6 +179,14 @@ task filter_for_pdx {
         File human_tsv ="${sample_name}.abundance.${human_tag}.tsv"
         File mouse_tsv ="${sample_name}.abundance.${mouse_tag}.tsv"
     }
+
+    runtime {
+        docker: "docker.io/blawney/kallisto:v0.0.2"
+        cpu: 2
+        memory: "6 G"
+        disks: "local-disk " + disk_size + " HDD"
+        preemptible: 0
+    }
 }
 
 task zip_results {
