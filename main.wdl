@@ -67,7 +67,7 @@ workflow KallistoAndSleuthWorkflow{
             input:
                 is_pdx = is_pdx,
                 abundance_tsv = single_sample_process.abundance_tsv,
-                sample_name = single_sample_process.sample_name,
+                sample_name = single_sample_process.sample_name_output,
                 human_tag = human_tag,
                 mouse_tag = mouse_tag
         }
@@ -161,6 +161,8 @@ task filter_for_pdx {
     String sample_name
     String human_tag
     String mouse_tag
+
+    Int disk_size = 30
 
     command {
         if [ "${is_pdx}" = "true" ]

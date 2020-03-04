@@ -24,6 +24,7 @@ workflow SingleSampleKallistoWorkflow {
         File abundance_h5 = KallistoQuantification.abundance_h5
         File abundance_tsv = KallistoQuantification.abundance_tsv
         File run_info = KallistoQuantification.run_info
+        String sample_name_output = "${sample_name}"
     }
 }
 
@@ -59,7 +60,6 @@ task KallistoQuantification {
         File abundance_h5 = "${sample_name}.abundance.h5"
         File abundance_tsv = "${sample_name}.abundance.tsv"
         File run_info = "${sample_name}.run_info.json"
-        String sample_name = "${sample_name}"
     }
 
     runtime {
