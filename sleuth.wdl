@@ -36,7 +36,7 @@ task sleuth_dge {
     command {
         echo "Moving abundance.h5 files..."
 
-        /usr/bin/python3 /opt/software/move_files.py ${sep=" " abundance_h5_files}
+        /usr/bin/python3 /opt/software/move_files.py -t h5 ${sep=" " abundance_h5_files}
 
         echo "Completed moving files..."
         /usr/bin/python3 /opt/software/create_sleuth_annotation_file.py -i ${annotations} -o ${sleuth_annotations}
@@ -49,7 +49,7 @@ task sleuth_dge {
         then
 
             # moves the *filtered* TSV files into the sample dirs, to co-locate with the h5 abundance files
-            /usr/bin/python3 /opt/software/move_files.py ${sep=" " human_tsv_files}
+            /usr/bin/python3 /opt/software/move_files.py -t tsv ${sep=" " human_tsv_files}
 
             Rscript /opt/software/sleuth.R \
                 ${sleuth_annotations} \

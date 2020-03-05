@@ -29,6 +29,7 @@ PLOT_N_TOP_HITS <- as.integer(PLOT_N_TOP_HITS)
 # 'path', 'sample' names are required by sleuth, and 'condition' is required for our model equation below
 # The file has headers and the name of the condition column should be 'condition' for the model formula below
 s2c <- read.table(DESIGN_FILE, header=T, stringsAsFactors=F)
+s2c$condition <- as.factor(s2c$condition)
 
 # map the ENST IDs to common gene names.  The files used have (in order):
 # - ensembl gene ID
@@ -44,9 +45,9 @@ if (PDX) {
 	all_targets <- as.character(rhdf5::h5read(fname, "aux/ids"))
 	human_enst <-lapply(all_targets,function(x){if(startsWith(x, HUMAN_TRANSCRIPT_PREFIX)) return(TRUE) else return(FALSE)})
 	human_targets <- all_targets[human_enst == TRUE]
-	so <- sleuth_prep(s2c, target_mapping = transcript_to_gene_map, read_bootstrap_tpm = TRUE, extra_bootstrap_summary = TRUE, filter_target_id=human_targets)
+	so <- sleuth_prep(s2c, target_mapping = transcript_to_gene_map, read_bootstrap_tpm = TRUE, extra_bootstrap_summary = TRUE, filter_target_id=human_targets, num_cores=1)
 } else {
-	so <- sleuth_prep(s2c, target_mapping = transcript_to_gene_map, read_bootstrap_tpm = TRUE, extra_bootstrap_summary = TRUE)
+	so <- sleuth_prep(s2c, target_mapping = transcript_to_gene_map, read_bootstrap_tpm = TRUE, extra_bootstrap_summary = TRUE, num_cores=1)
 }
 so <- sleuth_fit(so, formula= ~ condition, fit_name='full')
 so <- sleuth_fit(so, formula = ~1, fit_name='reduced')
